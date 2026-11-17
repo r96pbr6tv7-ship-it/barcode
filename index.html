@@ -76,7 +76,7 @@
   <div class="msg" id="msg"></div>
 
   <div class="sum"><span>상품 <b id="kinds">0</b>종</span><span>총 <b id="total">0</b>개</span></div>
-  <div style="text-align:center;font-size:12px;color:var(--mute);margin:4px 0">등록된 상품 이름 <b id="namecount">0</b>개 · v6</div>
+  <div style="text-align:center;font-size:12px;color:var(--mute);margin:4px 0">등록된 상품 이름 <b id="namecount">0</b>개 · v4</div>
   <ul id="list"></ul>
 
   <div class="foot">
@@ -138,11 +138,6 @@
          style="width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px">
   <div class="msg" id="namehint" style="margin:6px 2px 10px"></div>
   <div class="row"><button class="btn" id="nameskip" style="flex:1">나중에</button><button class="btn" id="namesave" style="flex:1;background:var(--accent);color:#fff;border:0">저장</button></div>
-  <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
-    <p style="margin:0 0 8px;font-size:14px"><b>담배 보루 바코드인가요?</b><br><small style="color:var(--mute)">어떤 담배인지 고르면 다음부턴 이 바코드 찍을 때 그 담배 10갑으로 세져요.</small></p>
-    <select id="linkto" style="width:100%;padding:10px;font-size:15px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)"></select>
-    <button class="btn" id="linksave" style="width:100%;margin-top:8px;background:#2f5d9e;color:#fff;border:0;font-weight:700">이 담배 보루로 연결 (×10)</button>
-  </div>
 </div></div>
 
 <div class="modal" id="bkbox"><div class="box">
@@ -242,12 +237,8 @@
 
   // ---- 처음 보는 상품 이름 입력 ----
   var naming=null;
-  // 보루 바코드 → 낱갑 바코드로 연결 (1번 찍으면 10갑)
-  var KEY_LINK='bc_links_v1', links=load(KEY_LINK,{});
-  function saveLinks(){ try{localStorage.setItem(KEY_LINK,JSON.stringify(links))}catch(e){} }
   function handleScan(code){
     code=String(code).trim(); if(!code) return;
-    if(links[code]){ add(links[code].to, links[code].mult||10); return; }
     add(code,1);
     if(!names[code]) askName(code);
   }
@@ -255,11 +246,8 @@
     naming=code;
     $('namecode').textContent='바코드 '+code;
     $('namein').value=''; $('namehint').textContent='이름 찾는 중…'; $('namehint').className='msg';
-    var sel=$('linkto'); sel.innerHTML='<option value="">— 담배 고르기 —</option>';
-    Object.keys(names).filter(function(c){return c!==code && /^[A-Z]\)/.test(names[c]||'')})
-      .sort(function(a,b){return names[a].localeCompare(names[b],'ko')})
-      .forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=names[c]; sel.appendChild(o); });
     $('namebox').classList.add('on');
+    setTimeout(function(){ try{$('namein').focus()}catch(e){} },50);
     lookup(code).then(function(n){
       if(naming!==code) return;
       if(n && !$('namein').value){ $('namein').value=n; $('namehint').textContent='자동으로 찾은 이름이에요. 맞는지 확인하고 고쳐주세요.'; }
@@ -273,16 +261,6 @@
     closeName();
   };
   $('nameskip').onclick=closeName;
-  $('linksave').onclick=function(){
-    var to=$('linkto').value, code=naming;
-    if(!code) return;
-    if(!to){ $('namehint').textContent='위에서 담배를 먼저 골라주세요.'; $('namehint').className='msg err'; return; }
-    links[code]={to:to,mult:10}; saveLinks();
-    // 방금 1개로 들어간 보루 바코드 줄을 지우고, 그 담배에 10갑 더하기
-    var had=counts[code]||0; delete counts[code]; order=order.filter(function(x){return x!==code});
-    closeName(); add(to, 10*(had||1));
-    msg('✔ 보루 연결됨 · '+names[to]+' → '+counts[to]+'갑','ok');
-  };
   $('namein').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); $('namesave').click(); } });
 
   // 해외 무료 상품 목록(Open Food Facts)에서 이름 찾아보기 — 한국 상품은 없는 경우 많음
@@ -305,7 +283,6 @@
   // ---- 이름 백업·불러오기 ----
   $('backup').onclick=function(){
     var lines=Object.keys(names).map(function(c){return c+'\t'+names[c]});
-    Object.keys(links).forEach(function(c){ lines.push('보루\t'+c+'\t'+links[c].to); });
     $('bktext').value=lines.join('\n');
     $('bkmsg').textContent='저장된 이름 '+lines.length+'개'; $('bkmsg').className='msg';
     $('bkbox').classList.add('on');
@@ -314,8 +291,6 @@
   $('bkload').onclick=function(){
     var n=0;
     $('bktext').value.split(/\r?\n/).forEach(function(line){
-      var L=line.match(/^\s*보루\s+(\d{6,14})\s+(\d{6,14})\s*$/);
-      if(L){ links[L[1]]={to:L[2],mult:10}; saveLinks(); n++; return; }
       var m=line.match(/^\s*(\d{6,14})[\t ,:]+(.+?)\s*$/);
       if(m){ names[m[1]]=m[2]; n++; }
     });
