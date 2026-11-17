@@ -78,13 +78,14 @@
   <div class="msg" id="msg"></div>
 
   <div class="sum"><span>상품 <b id="kinds">0</b>종</span><span>총 <b id="total">0</b>개</span></div>
-  <div style="text-align:center;font-size:12px;color:var(--mute);margin:4px 0">등록된 상품 이름 <b id="namecount">0</b>개 · v6</div>
+  <div style="text-align:center;font-size:12px;color:var(--mute);margin:4px 0">등록된 상품 이름 <b id="namecount">0</b>개 · v7</div>
   <ul id="list"></ul>
 
   <div class="foot">
     <button class="btn" id="copy">결과 복사</button>
     <button class="btn danger" id="reset">전체 초기화</button>
   </div>
+  <button class="big" id="undo" style="display:none;background:#8a6d1f">↩ 방금 초기화한 거 되돌리기</button>
   <div class="foot">
     <button class="btn" id="backup">상품 이름 백업·불러오기</button>
   </div>
@@ -345,7 +346,21 @@
   });
   $('reset').onclick=function(){$('confirm').classList.add('on')};
   $('no').onclick=function(){$('confirm').classList.remove('on')};
-  $('yes').onclick=function(){counts={};order=[];lastCode=null;save();render();msg('초기화했어요');$('confirm').classList.remove('on')};
+  var KEY_UNDO='bc_undo_v1';
+  function showUndo(on){ $('undo').style.display=on?'block':'none'; }
+  $('yes').onclick=function(){
+    try{localStorage.setItem(KEY_UNDO,JSON.stringify({counts:counts,order:order}))}catch(e){}
+    counts={};order=[];lastCode=null;save();render();msg('초기화했어요. 실수면 아래 되돌리기를 누르세요');$('confirm').classList.remove('on');showUndo(true);
+  };
+  $('undo').onclick=function(){
+    var u=load(KEY_UNDO,null); if(!u) {showUndo(false);return;}
+    // 초기화 뒤에 새로 찍은 게 있으면 합쳐서 되살림
+    for(var c in u.counts){ counts[c]=(counts[c]||0)+u.counts[c]; }
+    order=order.concat((u.order||[]).filter(function(c){return order.indexOf(c)<0}));
+    try{localStorage.removeItem(KEY_UNDO)}catch(e){}
+    save();render();showUndo(false);msg('✔ 초기화 전 수량을 되살렸어요','ok');
+  };
+  try{ if(localStorage.getItem(KEY_UNDO)) showUndo(true); }catch(e){}
   $('copy').onclick=async function(){
     var keys=order.filter(function(c){return c in counts}), total=0;
     var lines=keys.map(function(c){total+=counts[c];return (names[c]||c)+' : '+counts[c]+'개'});
