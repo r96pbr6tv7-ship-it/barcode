@@ -441,6 +441,8 @@
   function sim(a,b){
     a=norm(a); b=norm(b); if(!a||!b) return 0;
     if(a===b) return 1;
+    var da=a.match(/\d+/g), db=b.match(/\d+/g);   // 용량 숫자가 둘 다 있는데 다르면 다른 상품
+    if(da && db && !da.some(function(x){return db.indexOf(x)>=0})) return 0;
     if(Math.min(a.length,b.length)>=2 && (a.indexOf(b)>=0||b.indexOf(a)>=0)) return 0.6+0.4*Math.min(a.length,b.length)/Math.max(a.length,b.length);
     function grams(s){ var g={}; for(var i=0;i<s.length-1;i++){ var k=s.substr(i,2); g[k]=(g[k]||0)+1; } return g; }
     var ga=grams(a), gb=grams(b), inter=0, na=0, nb=0, k;
