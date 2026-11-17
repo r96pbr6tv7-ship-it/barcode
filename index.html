@@ -78,7 +78,7 @@
   <div class="msg" id="msg"></div>
 
   <div class="sum"><span>상품 <b id="kinds">0</b>종</span><span>총 <b id="total">0</b>개</span></div>
-  <div style="text-align:center;font-size:12px;color:var(--mute);margin:4px 0">등록된 상품 이름 <b id="namecount">0</b>개 · v7</div>
+  <div style="text-align:center;font-size:12px;color:var(--mute);margin:4px 0">등록된 상품 이름 <b id="namecount">0</b>개 · v8</div>
   <ul id="list"></ul>
 
   <div class="foot">
@@ -89,51 +89,8 @@
   <div class="foot">
     <button class="btn" id="backup">상품 이름 백업·불러오기</button>
   </div>
-  <button class="big" id="cmpopen" style="background:#2f5d9e">📄 납품서랑 비교하기</button>
 </main>
 
-<div class="modal" id="cmpbox" style="align-items:flex-start;overflow:auto"><div class="box" style="max-width:520px;margin:10px 0 40px">
-  <p style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>납품서랑 비교하기</b><button class="btn" id="cmpclose" style="padding:6px 12px">닫기</button></p>
-
-  <div id="step1">
-    <label class="btn" for="cmpimg" style="display:block;text-align:center;background:var(--accent);color:#fff;border:0;font-weight:700">📷 납품서 사진으로 읽기</label>
-    <input id="cmpimg" type="file" accept="image/*" hidden>
-    <div class="msg" id="ocrmsg" style="margin:8px 2px"></div>
-    <details style="font-size:14px;color:var(--mute);margin-bottom:8px">
-      <summary>글자를 직접 붙여넣기 (더 정확함)</summary>
-      <p style="margin:8px 0">아이폰 사진 앱에서 납품서 사진을 열고 글자를 꾹 눌러 <b>전체 선택 → 복사</b>한 뒤 아래에 붙여넣으세요.</p>
-      <textarea id="cmptext" placeholder="예)&#10;새우깡 90g 12&#10;코카콜라 500ml 24"></textarea>
-      <button class="btn" id="cmpparse" style="width:100%;margin-top:8px">이 글자로 목록 만들기</button>
-    </details>
-  </div>
-
-  <div id="step2" style="display:none">
-    <p style="font-size:14px;color:var(--mute);margin:6px 0 8px">읽은 내용이에요. 틀린 이름이나 수량은 고치고, 상관없는 줄은 ✕로 지워주세요.</p>
-    <div id="paperrows"></div>
-    <div class="row"><button class="btn" id="rowadd" style="flex:1">+ 줄 추가</button><button class="btn" id="redo" style="flex:1">다시 읽기</button></div>
-    <button class="big" id="cmprun">비교하기</button>
-  </div>
-
-  <div id="step3" style="display:none">
-    <div id="cmpsum" style="margin:6px 0 10px;font-size:15px"></div>
-    <div id="cmpres"></div>
-    <div class="row"><button class="btn" id="back2" style="flex:1">목록 고치기</button><button class="btn" id="cmpcopy" style="flex:1">결과 복사</button></div>
-  </div>
-</div></div>
-
-<style>
-  .prow{display:flex;gap:6px;margin-bottom:6px}
-  .prow input{min-width:0;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:15px}
-  .prow .pn{flex:1}.prow .pq{width:60px;text-align:center}
-  .prow button{width:40px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--mute);font-size:16px}
-  .res{border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:15px;border:1px solid var(--line)}
-  .res small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
-  .res.ok{background:rgba(31,111,80,.08)}
-  .res.diff{background:rgba(214,150,30,.15);border-color:rgba(214,150,30,.5)}
-  .res.miss{background:rgba(179,65,46,.10);border-color:rgba(179,65,46,.45)}
-  .res.extra{background:rgba(47,93,158,.10);border-color:rgba(47,93,158,.4)}
-  .tag{font-weight:700;margin-right:6px}
-</style>
 
 <div class="modal" id="namebox"><div class="box">
   <p><b>처음 보는 상품이에요</b><br><small style="color:var(--mute)" id="namecode"></small></p>
@@ -369,169 +326,6 @@
     catch(e){$('copytext').value=text;$('copybox').classList.add('on')}
   };
   $('close').onclick=function(){$('copybox').classList.remove('on')};
-
-  // ---- 납품서 비교 ----
-  function show(step){ ['step1','step2','step3'].forEach(function(s){ $(s).style.display=(s===step)?'block':'none'; }); }
-  $('cmpopen').onclick=function(){ if(running) stop(); $('cmpbox').classList.add('on'); if(!$('paperrows').children.length) show('step1'); };
-  $('cmpclose').onclick=function(){ $('cmpbox').classList.remove('on'); };
-  $('redo').onclick=function(){ $('ocrmsg').textContent=''; show('step1'); };
-  $('back2').onclick=function(){ show('step2'); };
-
-  // 한 줄 → {name, qty}
-  function parseLine(line){
-    var s=line.replace(/[|｜]/g,' ').replace(/\s+/g,' ').trim();
-    if(!s) return null;
-    var name='', qty=null, m;
-    // 1) "12EA", "12 EA", "12ea"
-    m=s.match(/^(.*?)(\d{1,4})\s*[Ee][Aa]\b/);
-    if(m){ name=m[1]; qty=+m[2]; }
-    else{
-      // 2) EA 없으면: 이름 뒤 첫 번째 '쉼표 없는 순수 숫자'를 수량으로
-      var toks=s.split(' '), i=0, nameToks=[];
-      if(/^\d{1,3}[.)]?$/.test(toks[0]) && toks.length>2) i=1;      // 맨 앞 순번 제거
-      for(;i<toks.length;i++){
-        var t=toks[i];
-        if(nameToks.length && /^\d[\d,]*$/.test(t)){
-          if(t.indexOf(',')<0 && +t>0 && +t<1000){ qty=+t; }
-          break;
-        }
-        nameToks.push(t);
-      }
-      name=nameToks.join(' ');
-    }
-    name=name.replace(/^\s*\d{1,3}[.)]?\s+/,'').replace(/[\s\-·:]+$/,'').trim();
-    if(!/[가-힣A-Za-z]/.test(name) || qty===null) return null;   // 이름·수량 없는 줄(합계, 날짜 등)은 버림
-    if(/합계|총계|소계|금액|부가세|페이지/.test(name)) return null;
-    return {name:name, qty:qty};
-  }
-
-  function fillRows(items){
-    var box=$('paperrows'); box.innerHTML='';
-    items.forEach(function(it){ addRow(it.name,it.qty); });
-    if(!items.length) addRow('','');
-    show('step2');
-  }
-  function addRow(name,qty){
-    var d=document.createElement('div'); d.className='prow';
-    d.innerHTML='<input class="pn" placeholder="상품명"><input class="pq" inputmode="numeric" placeholder="EA"><button aria-label="지우기">✕</button>';
-    d.querySelector('.pn').value=name; d.querySelector('.pq').value=qty;
-    d.querySelector('button').onclick=function(){ d.remove(); };
-    $('paperrows').appendChild(d);
-  }
-  $('rowadd').onclick=function(){ addRow('',''); };
-
-  $('cmpparse').onclick=function(){
-    var items=$('cmptext').value.split(/\r?\n/).map(parseLine).filter(Boolean);
-    fillRows(items);
-  };
-
-  // 사진 → 글자 (Tesseract, 처음 한 번은 한글 데이터 받느라 느림)
-  function loadTesseract(){
-    return new Promise(function(res,rej){
-      if(window.Tesseract) return res();
-      var sc=document.createElement('script');
-      sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-      sc.onload=function(){res()}; sc.onerror=function(){rej(new Error('load'))};
-      document.head.appendChild(sc);
-    });
-  }
-  $('cmpimg').addEventListener('change',async function(e){
-    var f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return;
-    var om=$('ocrmsg'); om.className='msg'; om.textContent='글자 읽는 준비 중… (처음엔 1분 정도 걸려요)';
-    try{
-      await loadTesseract();
-      var cv=await toCanvasMax(f,2000);
-      var worker=await Tesseract.createWorker('kor+eng',1,{logger:function(m){
-        if(m.status==='recognizing text') om.textContent='읽는 중… '+Math.round(m.progress*100)+'%';
-      }});
-      var out=await worker.recognize(cv);
-      await worker.terminate();
-      var text=out.data.text||'';
-      $('cmptext').value=text;
-      var items=text.split(/\r?\n/).map(parseLine).filter(Boolean);
-      om.textContent=items.length?('상품 '+items.length+'줄을 읽었어요'):'상품 줄을 못 찾았어요. 아래 "글자를 직접 붙여넣기"를 써보세요.';
-      if(items.length) fillRows(items);
-    }catch(err){
-      om.className='msg err'; om.textContent='사진을 읽지 못했어요. "글자를 직접 붙여넣기"를 써보세요.';
-    }
-  });
-  function toCanvasMax(file,max){
-    return new Promise(function(res,rej){
-      var url=URL.createObjectURL(file), img=new Image();
-      img.onload=function(){
-        var s=Math.min(1,max/Math.max(img.width,img.height));
-        var cv=document.createElement('canvas'); cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
-        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); URL.revokeObjectURL(url); res(cv);
-      };
-      img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('img'))};
-      img.src=url;
-    });
-  }
-
-  // 이름 비슷한 정도 (0~1)
-  function norm(s){ return String(s).toLowerCase().replace(/[\s()\[\]{}.,·\-_/]/g,''); }
-  function sim(a,b){
-    a=norm(a); b=norm(b); if(!a||!b) return 0;
-    if(a===b) return 1;
-    var da=a.match(/\d+/g), db=b.match(/\d+/g);   // 용량 숫자가 둘 다 있는데 다르면 다른 상품
-    if(da && db && !da.some(function(x){return db.indexOf(x)>=0})) return 0;
-    if(Math.min(a.length,b.length)>=2 && (a.indexOf(b)>=0||b.indexOf(a)>=0)) return 0.6+0.4*Math.min(a.length,b.length)/Math.max(a.length,b.length);
-    function grams(s){ var g={}; for(var i=0;i<s.length-1;i++){ var k=s.substr(i,2); g[k]=(g[k]||0)+1; } return g; }
-    var ga=grams(a), gb=grams(b), inter=0, na=0, nb=0, k;
-    for(k in ga){ na+=ga[k]; if(gb[k]) inter+=Math.min(ga[k],gb[k]); }
-    for(k in gb) nb+=gb[k];
-    return na+nb?2*inter/(na+nb):0;
-  }
-
-  var lastCmpText='';
-  $('cmprun').onclick=function(){
-    var paper=[].map.call($('paperrows').querySelectorAll('.prow'),function(r){
-      return {name:r.querySelector('.pn').value.trim(), qty:parseInt(r.querySelector('.pq').value,10)||0};
-    }).filter(function(p){return p.name});
-    var scanned=order.filter(function(c){return c in counts}).map(function(c){
-      return {code:c, name:names[c]||'', qty:counts[c], used:false};
-    });
-
-    // 비슷한 것끼리 높은 점수 순으로 짝짓기
-    var pairs=[];
-    paper.forEach(function(p,pi){ scanned.forEach(function(s,si){
-      if(!s.name) return; var sc=sim(p.name,s.name); if(sc>=0.45) pairs.push({pi:pi,si:si,sc:sc});
-    }); });
-    pairs.sort(function(x,y){return y.sc-x.sc});
-    var pm={}, sm={};
-    pairs.forEach(function(x){ if(pm[x.pi]===undefined && sm[x.si]===undefined){ pm[x.pi]=x.si; sm[x.si]=x.pi; } });
-
-    var html='', lines=[], ok=0, diff=0, miss=0, extra=0;
-    function esc(t){ return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
-    var rowsMiss=[], rowsDiff=[], rowsOk=[], rowsExtra=[];
-    paper.forEach(function(p,pi){
-      var si=pm[pi];
-      if(si===undefined){ miss++; rowsMiss.push('<div class="res miss"><span class="tag">❌ 안 찍힘</span>'+esc(p.name)+' — 납품서 '+p.qty+'EA</div>'); lines.push('❌ 안 찍힘: '+p.name+' (납품서 '+p.qty+'EA)'); return; }
-      var s=scanned[si];
-      var nameNote=(norm(s.name)!==norm(p.name))?'<small>스캔 이름: '+esc(s.name)+'</small>':'';
-      if(s.qty===p.qty){ ok++; rowsOk.push('<div class="res ok"><span class="tag">✅</span>'+esc(p.name)+' '+p.qty+'EA'+nameNote+'</div>'); lines.push('✅ '+p.name+' '+p.qty+'EA'); }
-      else{ diff++; var d=s.qty-p.qty;
-        rowsDiff.push('<div class="res diff"><span class="tag">⚠️ 수량 다름</span>'+esc(p.name)+' — 납품서 '+p.qty+'EA / 스캔 '+s.qty+'EA ('+(d>0?'+':'')+d+')'+nameNote+'</div>');
-        lines.push('⚠️ 수량 다름: '+p.name+' 납품서 '+p.qty+'EA / 스캔 '+s.qty+'EA ('+(d>0?'+':'')+d+')'); }
-    });
-    scanned.forEach(function(s,si){
-      if(sm[si]!==undefined) return;
-      extra++; var nm=s.name||('이름 없음 · '+s.code);
-      rowsExtra.push('<div class="res extra"><span class="tag">➕ 납품서에 없음</span>'+esc(nm)+' — 스캔 '+s.qty+'EA</div>');
-      lines.push('➕ 납품서에 없음: '+nm+' (스캔 '+s.qty+'EA)');
-    });
-    html=rowsMiss.join('')+rowsDiff.join('')+rowsExtra.join('')+rowsOk.join('');
-    $('cmpres').innerHTML=html||'<div class="empty">비교할 내용이 없어요</div>';
-    var allOk=(miss+diff+extra===0)&&ok>0;
-    $('cmpsum').innerHTML=allOk?'<b style="color:var(--accent)">🎉 전부 맞아요! ('+ok+'개 품목)</b>':
-      '✅ 맞음 <b>'+ok+'</b> · ⚠️ 수량 다름 <b>'+diff+'</b> · ❌ 안 찍힘 <b>'+miss+'</b> · ➕ 납품서에 없음 <b>'+extra+'</b>';
-    lastCmpText=lines.join('\n');
-    show('step3');
-  };
-  $('cmpcopy').onclick=async function(){
-    try{ await navigator.clipboard.writeText(lastCmpText); $('cmpsum').insertAdjacentHTML('beforeend','<div class="msg ok">복사했어요</div>'); }
-    catch(e){ $('copytext').value=lastCmpText; $('copybox').classList.add('on'); }
-  };
 
   render();
 })();
