@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>실전개념 훈련기</title>
+<style>
+:root{
+  --bg:#f6f5f2; --card:#ffffff; --ink:#1d1d1f; --sub:#6b6b70; --line:#e4e2dc;
+  --acc:#2f6fdf; --acc-soft:#e6eefc; --bad:#d9483b; --mid:#e0a020; --good:#2f9e5a;
+  --chip:#efede8;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#141416; --card:#1f1f22; --ink:#f1f1f3; --sub:#9a9aa2; --line:#303035;
+    --acc:#6c9dff; --acc-soft:#22304a; --chip:#2a2a2e; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif;
+  -webkit-text-size-adjust:100%}
+body{padding-bottom:84px}
+header{padding:16px 16px 6px}
+header h1{font-size:20px;margin:0}
+header p{margin:4px 0 0;color:var(--sub);font-size:13px}
+.note{margin:8px 16px 0;padding:8px 12px;border-radius:10px;background:var(--chip);color:var(--sub);font-size:12px;display:none}
+main{padding:8px 16px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;border:0;background:none;color:var(--sub);font-size:13px;padding:8px 0;border-radius:10px;font-weight:600}
+nav button.on{color:var(--acc);background:var(--acc-soft)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.unit{display:inline-block;font-size:11px;font-weight:700;color:var(--acc);background:var(--acc-soft);padding:3px 8px;border-radius:6px}
+.trigger{font-size:19px;line-height:1.5;font-weight:650;margin:12px 0 4px}
+.qhint{font-size:13px;color:var(--sub)}
+.concept{font-size:16px;line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.tip{font-size:13px;color:var(--sub);margin-top:8px;line-height:1.5}
+textarea,input[type=text],select{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;padding:10px}
+textarea{min-height:64px;resize:vertical}
+.btn{border:0;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:650;background:var(--acc);color:#fff;width:100%}
+.btn.ghost{background:var(--chip);color:var(--ink)}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px}
+.row .btn{flex:1}
+.rate .b0{background:var(--bad)} .rate .b1{background:var(--mid)} .rate .b2{background:var(--good)}
+.prog{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin:4px 0 12px}
+.prog i{display:block;height:100%;background:var(--acc)}
+.meta{display:flex;justify-content:space-between;font-size:12px;color:var(--sub)}
+.dots{display:inline-flex;gap:3px;vertical-align:middle}
+.dots b{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots b.f{background:var(--good)}
+.list .item{padding:12px 0;border-bottom:1px solid var(--line)}
+.list .item:last-child{border-bottom:0}
+.item .t{font-weight:600;font-size:15px;line-height:1.45}
+.item .c{font-size:14px;color:var(--sub);margin-top:4px;line-height:1.5;display:none}
+.item.open .c{display:block}
+.item .tools{display:none;gap:8px;margin-top:8px}
+.item.open .tools{display:flex}
+.small{font-size:12px;color:var(--sub)}
+.link{background:none;border:0;color:var(--acc);font-size:13px;padding:4px 0;font-weight:600}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:11px;color:var(--sub)}
+.wr{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.wr img,.thumb-empty{width:72px;height:72px;object-fit:cover;border-radius:10px;background:var(--chip);flex:none}
+.wr .body{flex:1;min-width:0}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:10}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--card);
+  border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));display:none;z-index:11}
+.sheet h2{font-size:17px;margin:0 0 12px}
+.preview{width:100%;max-height:300px;object-fit:contain;border-radius:12px;background:var(--chip);margin-bottom:10px}
+.pick{display:flex;flex-wrap:wrap;gap:6px;max-height:240px;overflow:auto;padding:4px 0}
+.pick .chip{font-size:12px;text-align:left;white-space:normal}
+label.lbl{display:block;font-size:13px;font-weight:650;margin:14px 0 6px}
+.ai{background:var(--acc-soft);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;margin-top:8px;display:none}
+.empty{color:var(--sub);text-align:center;padding:28px 8px;font-size:14px;line-height:1.6}
+.hidden{display:none!important}
+.mine{background:var(--chip);border-radius:10px;padding:8px 10px;font-size:14px;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>실전개념 훈련기</h1>
+  <p>조건을 보면 → 떠올려야 할 실전 개념</p>
+</header>
+<div class="note" id="note"></div>
+<main id="view"></main>
+
+<nav>
+  <button data-tab="train" class="on">훈련</button>
+  <button data-tab="cards">카드</button>
+  <button data-tab="wrongs">오답</button>
+</nav>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet"></div>
+<input type="file" id="fileIn" accept="image/*" class="hidden">
+
+<script>
+/* ---------- 기본 카드 (수학 II) ---------- */
+const BASE = [
+ {id:'L1',u:'극한',t:'x→a일 때 분수식의 극한값이 존재하고, 분모 → 0',c:'분자도 반드시 → 0. 분자에 x=a를 넣은 값 = 0으로 식을 세운다.',tip:'미정계수 문제의 첫 식이 거의 항상 여기서 나온다.'},
+ {id:'L2',u:'극한',t:'분수식의 극한값이 0이 아닌 상수이고, 분자 → 0',c:'분모도 반드시 → 0.',tip:'L1의 반대 방향. 극한값이 0이면 성립하지 않으니 조건 확인.'},
+ {id:'L3',u:'극한',t:'f가 다항함수이고 lim(x→∞) f(x)/xⁿ = a (a≠0)',c:'f(x)는 n차식, 최고차항 계수는 a.',tip:'극한값이 0이면 f의 차수 < n. 발산이면 차수 > n.'},
+ {id:'L4',u:'극한',t:'f가 다항함수이고 lim(x→a) f(x)/(x−a) = b',c:'f(a)=0 → f(x)=(x−a)g(x)로 두고, g(a)=b.',tip:'L3과 같이 나오면 f의 차수와 인수를 동시에 확정할 수 있다.'},
+ {id:'L5',u:'극한',t:'∞/∞ 꼴의 유리식 극한',c:'분모의 최고차항으로 위아래를 나눈다. 차수가 같으면 최고차항 계수의 비, 분자 차수가 작으면 0, 크면 발산.',tip:''},
+ {id:'L6',u:'극한',t:'루트가 있는 0/0 꼴, 또는 ∞−∞ 꼴',c:'유리화(켤레식을 위아래에 곱하기)해서 약분 가능한 분수 꼴로 만든다.',tip:''},
+ {id:'L7',u:'극한',t:'x → −∞ 이고 식에 루트가 있음',c:'x = −t로 치환해서 t → ∞로 바꾼다. 또는 √(x²) = |x| = −x 로 처리.',tip:'부호 실수가 가장 많이 나오는 곳.'},
+ {id:'L8',u:'극한',t:'가우스 기호 [x], 절댓값, 구간별 함수, 그래프가 주어진 극한',c:'좌극한과 우극한을 따로 구한다. 둘이 같아야 극한이 존재.',tip:''},
+ {id:'L9',u:'극한',t:'lim f(g(x)) 꼴 (합성함수의 극한)',c:'먼저 g(x)가 어떤 값에, 위에서(+) 가는지 아래서(−) 가는지 확인. 상수로 고정되면 그 값 그대로 f에 넣는다.',tip:'g(x)=t로 치환해서 t의 움직임을 따라가면 정리가 쉽다.'},
+ {id:'L10',u:'극한',t:'lim f(x), lim{f(x)+g(x)} 같은 극한 조건 여러 개 → 다른 극한을 구하라',c:'구하는 식을 "극한이 존재하는 식들"의 합·차·곱·몫으로 바꿔서 극한의 성질을 쓴다.',tip:'각 부분의 극한이 수렴할 때만 쪼갤 수 있다.'},
+ {id:'L11',u:'극한',t:'g(x) ≤ f(x) ≤ h(x) 같은 부등식이 주어진 극한',c:'양쪽 극한이 같으면 가운데 f의 극한도 그 값 (함수의 극한의 대소 관계).',tip:''},
+
+ {id:'C1',u:'연속',t:'구간별로 정의된 함수가 실수 전체에서 연속',c:'경계점 x=a에서 f(a) = 좌극한 = 우극한으로 식을 세운다.',tip:''},
+ {id:'C2',u:'연속',t:'f는 불연속인데 f(x)g(x)가 연속이 되도록 하라',c:'f가 불연속인 점 a에서만 확인: 좌극한·우극한·함숫값을 f·g로 각각 계산해 같게 만든다. 흔히 g(a)=0이 답이 된다.',tip:'g(a)=0이 항상 필요한 건 아니니 세 값을 직접 비교.'},
+ {id:'C3',u:'연속',t:'(x−a)f(x) = (식) 이고 f가 연속, f(a)를 구하라',c:'f(a) = lim(x→a) (식)/(x−a). 식에 x=a 넣으면 0이어야 하므로 미정계수도 함께 나온다.',tip:''},
+ {id:'C4',u:'연속',t:'방정식이 어떤 구간에서 실근을 적어도 하나 가짐',c:'사잇값 정리: 연속함수 f에서 f(a)f(b) < 0 이면 (a, b)에 실근이 존재.',tip:'구간을 쪼개서 실근 개수의 최솟값을 묻기도 한다.'},
+ {id:'C5',u:'연속',t:'f(x) = (식)/(x−a) (x≠a), k (x=a) 가 연속',c:'k = lim(x→a) (식)/(x−a). 분자에 a를 넣으면 0 → 미정계수 결정.',tip:'L1과 세트.'},
+
+ {id:'D1',u:'미분',t:'lim(h→0) {f(a+ph) − f(a+qh)}/h 꼴',c:'미분계수 정의 꼴로 맞춘다. 결과는 (p−q)·f′(a).',tip:'f(a)를 빼고 더해서 두 덩어리로 나누면 보인다.'},
+ {id:'D2',u:'미분',t:'lim(x→a) {f(x)−f(a)}/(x²−a²) 같은 꼴',c:'분모를 인수분해해서 {f(x)−f(a)}/(x−a) 와 나머지로 나눈다 → f′(a)/(2a).',tip:''},
+ {id:'D3',u:'미분',t:'f(x+y) = f(x)+f(y)+(식) 같은 함수방정식',c:'x=0, y=0 대입으로 f(0)을 구하고, 도함수 정의 lim{f(x+h)−f(x)}/h에 식을 넣어 f′(x)를 구한다.',tip:''},
+ {id:'D4',u:'미분',t:'구간별 함수가 x=a에서 미분가능',c:'① 연속(함숫값 일치) ② 좌미분계수 = 우미분계수. 식 2개가 나온다.',tip:'다항식끼리 이어 붙인 경우 양쪽 도함수에 a를 넣어 비교하면 된다.'},
+ {id:'D5',u:'미분',t:'다항식 f(x)를 (x−a)²으로 나눈 나머지 / f(x)가 (x−a)²으로 나누어떨어짐',c:'f(a)와 f′(a)를 이용. 나누어떨어지면 f(a)=0, f′(a)=0.',tip:'나머지를 px+q로 두고 f(x)=(x−a)²Q(x)+px+q를 미분.'},
+ {id:'D6',u:'미분',t:'곡선 밖의 점에서 그은 접선',c:'접점을 (t, f(t))로 잡고 y − f(t) = f′(t)(x − t). 지나는 점을 대입해 t를 구한다.',tip:'접선의 개수 = t에 대한 방정식의 실근 개수.'},
+ {id:'D7',u:'미분',t:'x=a에서 극값을 가짐',c:'f′(a)=0 그리고 f′의 부호가 바뀌어야 함.',tip:'f′(a)=0만으로는 극값이 아닐 수 있다(예: x³).'},
+ {id:'D8',u:'미분',t:'삼차함수가 극값을 가짐 / 갖지 않음 / 실수 전체에서 증가',c:'f′(x)=0 (이차방정식)의 판별식: 극값 있음 ⇔ D>0, 없음(증가 또는 감소) ⇔ D≤0.',tip:''},
+ {id:'D9',u:'미분',t:'방정식 f(x) = k의 실근 개수',c:'y=f(x) 그래프와 직선 y=k의 교점 개수. 극댓값·극솟값과 k를 비교.',tip:'k를 한쪽으로 분리해서 그래프를 그리는 게 핵심.'},
+ {id:'D10',u:'미분',t:'모든 x에 대해 f(x) ≥ g(x)가 성립 (부등식 항상 성립)',c:'h(x) = f(x) − g(x)로 두고 h의 최솟값 ≥ 0.',tip:'구간이 정해져 있으면 그 구간에서의 최솟값.'},
+ {id:'D11',u:'미분',t:'수직선 위 점의 위치 x(t)가 주어짐',c:'속도 v = x′(t), 가속도 a = v′(t). 운동 방향이 바뀜 ⇔ v=0 이고 부호 변화.',tip:''},
+ {id:'D12',u:'미분',t:'|f(x)|가 실수 전체에서 미분가능 (f는 다항함수)',c:'f(a)=0인 점에서 f′(a)=0이어야 함. 즉 x축과 만나는 점은 중근 이상이어야 꺾이지 않는다.',tip:''},
+ {id:'D13',u:'미분',t:'삼차함수 그래프의 대칭·비율 문제',c:'삼차함수는 f″=0인 점(변곡점)에 대해 점대칭. 극대·극소의 중점이 그 점.',tip:'비율 관계(1:2 등)를 알면 계산이 크게 줄어든다.'},
+
+ {id:'I1',u:'적분',t:'∫ₐˣ f(t)dt = (x에 대한 식)',c:'① 양변을 x로 미분 → f(x) = (식)′ ② x=a 대입 → 좌변 0 → 미정계수.',tip:'두 단계를 다 써야 하는 경우가 많다.'},
+ {id:'I2',u:'적분',t:'∫ₐˣ (x−t)f(t)dt 처럼 적분 안에 x가 있음',c:'x∫f(t)dt − ∫t·f(t)dt 로 x를 적분 밖으로 꺼낸 뒤 미분(곱의 미분).',tip:''},
+ {id:'I3',u:'적분',t:'f(x) = (식) + ∫₀¹ f(t)dt 처럼 정적분이 식 안에 있음',c:'정적분 값은 상수 → k로 두고 f(x) = (식) + k. 다시 적분해서 k를 구한다.',tip:''},
+ {id:'I4',u:'적분',t:'lim(x→a) 1/(x−a) · ∫ₐˣ f(t)dt',c:'= f(a). (F(x)−F(a))/(x−a) 꼴, 즉 미분계수의 정의.',tip:'1/h ∫ₐ^(a+h) 꼴도 같다.'},
+ {id:'I5',u:'적분',t:'∫₋ₐᵃ (다항식) dx',c:'홀수차항은 0, 짝수차항(상수 포함)은 2∫₀ᵃ.',tip:'f(−x)=f(x), f(−x)=−f(x) 같은 조건도 같은 방식.'},
+ {id:'I6',u:'적분',t:'두 곡선(또는 곡선과 x축) 사이의 넓이',c:'교점을 구하고, 구간마다 (위 − 아래)를 적분. x축 아래 부분은 부호 주의.',tip:''},
+ {id:'I7',u:'적분',t:'포물선과 직선(또는 포물선끼리) 둘러싸인 넓이',c:'교점이 α, β이면 넓이 = |a|(β−α)³/6 (a: 두 식을 뺀 이차식의 최고차 계수).',tip:'삼차함수와 접선: |a|(β−α)⁴/12.'},
+ {id:'I8',u:'적분',t:'속도 v(t) 그래프/식이 주어지고 위치 또는 거리',c:'위치의 변화량 = ∫v dt, 움직인 거리 = ∫|v| dt.',tip:'"원점으로 돌아옴" ⇔ ∫v dt = 0.'},
+ {id:'I9',u:'적분',t:'f(x+p) = f(x) 또는 평행이동·대칭 조건이 있는 적분',c:'구간을 옮겨서 이미 아는 넓이로 바꾼다. 그래프를 그려서 같은 조각 찾기.',tip:''},
+ {id:'I10',u:'적분',t:'f와 그 역함수 g가 함께 나오는 넓이·적분',c:'y=x 대칭 이용: ∫ₐᵇ f + ∫_f(a)^f(b) g = b·f(b) − a·f(a).',tip:'그림으로 직사각형 넓이를 빼는 구조를 확인.'},
+
+ /* ---- 미적분: 초월함수 ---- */
+ {id:'E1',u:'미적·극한',t:'x→0 이고 eˣ(또는 aˣ)이 들어간 0/0 꼴',c:'lim(x→0) (eˣ−1)/x = 1 꼴로 맞춘다. (e^(ax)−1)/(bx) → a/b. aˣ이면 (aˣ−1)/x → ln a.',tip:'지수 부분과 분모를 똑같은 덩어리로 만드는 게 핵심.'},
+ {id:'E2',u:'미적·극한',t:'x→0 이고 ln(1+□)이 들어간 0/0 꼴',c:'lim(x→0) ln(1+x)/x = 1 꼴로 맞춘다. ln(1+ax)/(bx) → a/b.',tip:'ln x가 x→1이면 x−1 = t로 치환해서 ln(1+t)/t.'},
+ {id:'E3',u:'미적·극한',t:'1^∞ 꼴 (밑 → 1, 지수 → ∞)',c:'(1+□)^(1/□) → e 꼴로 맞춘다. lim(x→0)(1+x)^(1/x) = e, lim(x→∞)(1+1/x)^x = e.',tip:'(1+ax)^(b/x) → e^(ab). 지수를 □의 역수 × 나머지로 쪼개기.'},
+ {id:'E4',u:'미적·극한',t:'x→0 이고 sin, tan이 들어간 0/0 꼴',c:'sin x / x → 1, tan x / x → 1 꼴로 맞춘다. sin(ax)/(bx) → a/b.',tip:'각은 라디안 기준.'},
+ {id:'E5',u:'미적·극한',t:'1 − cos x 가 들어간 극한',c:'분모·분자에 1 + cos x를 곱해서 sin²x로 바꾼다. lim(x→0)(1−cos x)/x² = 1/2.',tip:''},
+ {id:'E6',u:'미적·극한',t:'x → π/2, x → π 처럼 0이 아닌 값으로 가는 삼각함수 극한',c:'t = x − a로 치환해서 t → 0으로 바꾼 뒤 sin t / t 꼴을 만든다.',tip:'cos(π/2 + t) = −sin t 같은 변환 공식이 같이 나온다.'},
+ {id:'E7',u:'미적·극한',t:'도형에서 θ → 0+ 일 때 넓이·길이의 극한',c:'길이를 θ의 삼각함수로 표현한 뒤, θ로 나눠 sin θ/θ, tan θ/θ 꼴로 만든다.',tip:'S(θ)/θ², S(θ)/θ³ 처럼 차수를 맞추라는 문제가 많다.'},
+ {id:'E8',u:'미적·극한',t:'x → ±∞ 에서 지수함수가 들어간 분수식',c:'밑이 가장 큰 지수항으로 위아래를 나눈다. a>1이면 aˣ → ∞ (x→∞), → 0 (x→−∞).',tip:'증가 속도: 지수 ≫ 다항 ≫ 로그.'},
+
+ {id:'F1',u:'미적·미분',t:'함수 안에 함수가 들어 있음 f(g(x))',c:'합성함수 미분: {f(g(x))}′ = f′(g(x))·g′(x).',tip:'겉 미분 × 속 미분. 속을 빠뜨리는 실수가 제일 많다.'},
+ {id:'F2',u:'미적·미분',t:'지수·로그·삼각함수의 도함수',c:'(eˣ)′=eˣ, (aˣ)′=aˣ ln a, (ln|x|)′=1/x, (logₐx)′=1/(x ln a), (tan x)′=sec²x, (sec x)′=sec x tan x, (cot x)′=−csc²x, (csc x)′=−csc x cot x.',tip:''},
+ {id:'F3',u:'미적·미분',t:'y = (x에 대한 식)^(x에 대한 식) 처럼 지수에도 x가 있음',c:'양변에 ln을 취한 뒤 미분 (로그미분법): y′/y = (ln 취한 식)′.',tip:'곱·몫이 복잡하게 많은 식에도 쓸 수 있다.'},
+ {id:'F4',u:'미적·미분',t:'x = f(t), y = g(t) 처럼 매개변수로 주어진 곡선',c:'dy/dx = g′(t) / f′(t). 접선은 해당 t값을 먼저 구해서 대입.',tip:''},
+ {id:'F5',u:'미적·미분',t:'x² + xy + y³ = 1 처럼 y가 정리되지 않은 식',c:'음함수 미분: y를 x의 함수로 보고 양변을 x로 미분한 뒤 y′로 정리.',tip:'y² 미분은 2y·y′. y′를 잊지 말 것.'},
+ {id:'F6',u:'미적·미분',t:'f의 역함수 g에 대해 g′(b)를 구하라',c:'f(a) = b인 a를 먼저 찾고, g′(b) = 1 / f′(a).',tip:'g(b) = a. 역함수 식을 직접 구할 필요가 없다.'},
+ {id:'F7',u:'미적·미분',t:'변곡점',c:'f″(a) = 0 이고 f″의 부호가 바뀌는 점.',tip:'f″(a)=0만으로는 부족 (예: x⁴).'},
+ {id:'F8',u:'미적·미분',t:'오목·볼록 (위로 볼록 / 아래로 볼록) 구간',c:'f″ > 0 → 아래로 볼록, f″ < 0 → 위로 볼록.',tip:''},
+ {id:'F9',u:'미적·미분',t:'원점(또는 곡선 밖의 점)에서 초월함수 곡선에 그은 접선',c:'접점 (t, f(t))를 잡고 접선에 지나는 점을 대입. 원점이면 f(t) = t·f′(t).',tip:'y = ln x → t = e, y = eˣ → t = 1이 단골.'},
+ {id:'F10',u:'미적·미분',t:'x·e⁻ˣ, ln x / x, eˣ/x 같은 함수의 그래프 개형',c:'f′로 증감·극값, f″로 오목·볼록, x → ±∞와 정의역 끝에서의 극한으로 점근선을 확인.',tip:'방정식 실근 개수, 부등식 문제가 이 개형에서 나온다.'},
+ {id:'F11',u:'미적·미분',t:'방정식 f(x) = k 실근 개수 / 부등식이 항상 성립 (초월함수)',c:'k를 분리해서 y = (식) 그래프와 y = k 비교. 부등식은 h = f − g의 최솟값 ≥ 0.',tip:'예: eˣ = kx → k = eˣ/x 로 분리.'},
+ {id:'F12',u:'미적·미분',t:'평면 위를 움직이는 점 (x(t), y(t))의 속도·속력',c:'속도 = (x′(t), y′(t)), 속력 = √(x′² + y′²), 가속도 = (x″, y″).',tip:''},
+
+ {id:'G1',u:'미적·적분',t:'분자가 분모의 도함수 꼴',c:'∫ f′(x)/f(x) dx = ln|f(x)| + C.',tip:'상수배는 앞으로 빼서 맞춘다. tan x = sin x / cos x도 이 꼴.'},
+ {id:'G2',u:'미적·적분',t:'f(g(x))·g′(x) 꼴 (속 함수의 도함수가 곱해져 있음)',c:'치환적분: t = g(x), dt = g′(x)dx. 정적분이면 적분 구간도 t로 바꾼다.',tip:''},
+ {id:'G3',u:'미적·적분',t:'(다항식)×eˣ, (다항식)×sin·cos, (다항식)×ln x',c:'부분적분: ∫f g′ = f g − ∫f′ g. 미분할 쪽 우선순위는 로그 > 다항 > 삼각 > 지수 (로다삼지).',tip:'다항식 차수만큼 반복하면 끝난다.'},
+ {id:'G4',u:'미적·적분',t:'eˣ sin x, eˣ cos x 의 적분',c:'부분적분을 두 번 하면 원래 적분이 다시 나온다 → I로 두고 방정식을 풀어 구한다.',tip:''},
+ {id:'G5',u:'미적·적분',t:'sin²x, cos²x 의 적분',c:'반각 공식: sin²x = (1 − cos 2x)/2, cos²x = (1 + cos 2x)/2.',tip:'홀수 거듭제곱(sin³x 등)은 sin x 하나 떼고 cos x = t로 치환.'},
+ {id:'G6',u:'미적·적분',t:'lim(n→∞) Σ (1/n)·f(k/n) 꼴',c:'구분구적법: ∫₀¹ f(x) dx. k/n이 x, 1/n이 dx.',tip:'Σ (p/n)·f(a + pk/n) → ∫ₐ^(a+p) f(x) dx.'},
+ {id:'G7',u:'미적·적분',t:'d/dx ∫ₐ^g(x) f(t) dt (위끝에 x의 함수)',c:'= f(g(x))·g′(x). 아래끝도 x의 함수면 위끝 − 아래끝.',tip:'∫ₐˣ 꼴 문제는 수학 II의 I1, I2와 같은 방식.'},
+ {id:'G8',u:'미적·적분',t:'∫ₐᵇ 에서 f(a + b − x)와 f(x)가 같이 나옴',c:'x = a + b − t로 치환하면 ∫ₐᵇ f(x)dx = ∫ₐᵇ f(a+b−x)dx. 원래 식과 더해서 2I로 푼다.',tip:'∫₀^(π/2) sinⁿ/(sinⁿ+cosⁿ) 같은 문제.'},
+ {id:'G9',u:'미적·적분',t:'입체도형의 부피',c:'x축에 수직인 단면의 넓이 S(x)를 구해서 V = ∫ S(x) dx.',tip:'단면이 정사각형이면 S = (한 변)², 반원이면 πr²/2.'},
+ {id:'G10',u:'미적·적분',t:'곡선의 길이 / 평면에서 움직인 거리',c:'y = f(x): ∫√(1 + f′(x)²) dx. 매개변수: ∫√(x′(t)² + y′(t)²) dt.',tip:'루트 안이 완전제곱식이 되도록 출제되는 경우가 많다.'},
+ {id:'G11',u:'미적·적분',t:'초월함수와 곡선·직선 사이의 넓이',c:'교점을 구하고 구간마다 (위 − 아래)를 적분. 역함수 관계면 y = x 대칭으로 넓이를 옮겨서 계산.',tip:'ln x 아래 넓이는 eˣ 쪽으로 옮기면 쉬워질 때가 많다.'},
+ /* ---- 기본 도형 ---- */
+ {id:'B1',u:'도형',t:'직각삼각형, 또는 30°·45°·60°가 보임',c:'피타고라스 a²+b²=c². 특수각 비: 30-60-90 → 1 : √3 : 2, 45-45-90 → 1 : 1 : √2.',tip:'직각이 안 보이면 수선을 내려서 만든다.'},
+ {id:'B2',u:'도형',t:'평행선이 있거나 각이 같은 삼각형 두 개',c:'닮음. 길이의 비가 k면 넓이의 비는 k², 부피의 비는 k³.',tip:''},
+ {id:'B3',u:'도형',t:'원과 접선',c:'접점에서 반지름 ⊥ 접선. 원 밖의 한 점에서 그은 두 접선의 길이는 같다.',tip:'중심과 접점을 잇는 선을 먼저 긋는다.'},
+ {id:'B4',u:'도형',t:'원 위의 점들로 만든 각 (원주각)',c:'같은 호에 대한 원주각은 모두 같고, 중심각의 1/2. 지름에 대한 원주각은 90°.',tip:''},
+ {id:'B5',u:'도형',t:'원에 내접하는 사각형',c:'마주보는 두 각의 합 = 180°.',tip:'코사인법칙과 같이 쓰면 cos(180°−θ) = −cos θ.'},
+ {id:'B6',u:'도형',t:'원의 현(弦)이 주어짐',c:'중심에서 현에 내린 수선은 현을 이등분. 반지름² = (중심~현 거리)² + (현의 절반)².',tip:''},
+ {id:'B7',u:'도형',t:'두 변과 끼인각을 아는 삼각형의 넓이',c:'S = (1/2)·a·b·sin θ.',tip:''},
+ {id:'B8',u:'도형',t:'삼각형의 외접원 / 각과 마주보는 변이 짝으로 주어짐',c:'사인법칙: a/sin A = b/sin B = c/sin C = 2R.',tip:''},
+ {id:'B9',u:'도형',t:'두 변과 끼인각 → 나머지 변 / 세 변 → 각',c:'코사인법칙: a² = b² + c² − 2bc·cos A.',tip:''},
+ {id:'B10',u:'도형',t:'삼각형에서 각의 이등분선',c:'AB : AC = BD : DC (D는 이등분선과 BC의 교점).',tip:'넓이 분할로도 증명할 수 있다.'},
+ {id:'B11',u:'도형',t:'중선, 무게중심',c:'무게중심은 중선을 2 : 1로 나눈다. 중선정리: AB² + AC² = 2(AM² + BM²).',tip:''},
+ {id:'B12',u:'도형',t:'이등변삼각형',c:'꼭짓점에서 밑변에 내린 수선은 밑변을 이등분하고 꼭지각도 이등분.',tip:''},
+ {id:'B13',u:'도형',t:'원 밖(안)의 한 점을 지나는 두 할선 / 할선과 접선',c:'방멱: PA·PB = PC·PD, 접선이면 PT² = PA·PB.',tip:''},
+ {id:'B14',u:'도형',t:'정삼각형',c:'한 변 a → 높이 (√3/2)a, 넓이 (√3/4)a².',tip:''},
+ {id:'B15',u:'도형',t:'부채꼴 (반지름 r, 중심각 θ 라디안)',c:'호의 길이 rθ, 넓이 (1/2)r²θ = (1/2)·r·(호의 길이).',tip:''},
+ {id:'B16',u:'도형',t:'좌표평면에서 꼭짓점 좌표를 아는 삼각형의 넓이',c:'신발끈 공식: (1/2)|x₁y₂ + x₂y₃ + x₃y₁ − x₂y₁ − x₃y₂ − x₁y₃|.',tip:'한 꼭짓점이 원점이면 (1/2)|x₁y₂ − x₂y₁|.'},
+ {id:'B17',u:'도형',t:'점과 직선 사이의 거리',c:'점 (x₀, y₀), 직선 ax + by + c = 0 → |ax₀ + by₀ + c| / √(a² + b²).',tip:''},
+ {id:'B18',u:'도형',t:'원과 직선의 위치 관계 (만남 / 접함 / 안 만남)',c:'중심에서 직선까지 거리 d와 반지름 r 비교: d < r 두 점, d = r 접함, d > r 안 만남.',tip:'판별식보다 계산이 훨씬 짧다.'},
+ {id:'B19',u:'도형',t:'원 위의 점과 원 밖 점(또는 직선) 사이 거리의 최대·최소',c:'(중심까지의 거리) ± r.',tip:''},
+
+ /* ---- 수학(상) ---- */
+ {id:'P1',u:'수학(상)',t:'다항식 f(x)를 x − a로 나눈 나머지',c:'나머지정리: 나머지 = f(a).',tip:'ax − b로 나누면 f(b/a).'},
+ {id:'P2',u:'수학(상)',t:'f(x)를 (x − a)(x − b)로 나눈 나머지',c:'나머지를 px + q로 두고 f(a) = pa + q, f(b) = pb + q.',tip:'이차식으로 나누면 나머지는 일차 이하.'},
+ {id:'P3',u:'수학(상)',t:'f(a) = 0 / x − a로 나누어떨어짐',c:'인수정리: f(x) = (x − a)Q(x). 삼차 이상 인수분해는 f(±1), f(±2)...를 대입해서 근 찾기.',tip:'조립제법으로 Q(x)를 구한다.'},
+ {id:'P4',u:'수학(상)',t:'모든 x에 대해 성립하는 등식 (항등식)',c:'계수비교법 또는 수치대입법(계산하기 쉬운 x값 대입).',tip:'"x의 값에 관계없이"도 항등식이라는 뜻.'},
+ {id:'P5',u:'수학(상)',t:'방정식의 두 근(세 근)의 합·곱이 필요함',c:'근과 계수의 관계: ax²+bx+c=0 → α+β = −b/a, αβ = c/a. 삼차 ax³+bx²+cx+d=0 → α+β+γ = −b/a, αβ+βγ+γα = c/a, αβγ = −d/a.',tip:''},
+ {id:'P6',u:'수학(상)',t:'α² + β², α³ + β³, 1/α + 1/β 같은 대칭식',c:'α + β, αβ로 바꾼다: α²+β² = (α+β)² − 2αβ, α³+β³ = (α+β)³ − 3αβ(α+β).',tip:''},
+ {id:'P7',u:'수학(상)',t:'실근 / 중근 / 허근, 또는 직선과 포물선이 접함',c:'판별식 D = b² − 4ac: D > 0 서로 다른 두 실근, D = 0 중근(접함), D < 0 허근(안 만남).',tip:'짝수 계수면 D/4 = b′² − ac.'},
+ {id:'P8',u:'수학(상)',t:'계수가 실수인 방정식의 한 근이 a + bi',c:'켤레 a − bi도 근이다.',tip:'계수가 유리수이고 근이 p + √q면 p − √q도 근.'},
+ {id:'P9',u:'수학(상)',t:'x³ = 1 또는 x² + x + 1 = 0의 허근 ω',c:'ω³ = 1, ω² + ω + 1 = 0, ω̄ = ω² = 1/ω. 거듭제곱은 3으로 나눈 나머지로 줄인다.',tip:'x³ = −1이면 ω³ = −1, ω² − ω + 1 = 0.'},
+ {id:'P10',u:'수학(상)',t:'제한된 범위에서 이차함수의 최댓값·최솟값',c:'꼭짓점의 x좌표가 범위 안에 있는지 먼저 확인. 범위 안이면 꼭짓점과 양 끝값 비교, 밖이면 양 끝값만 비교.',tip:''},
+ {id:'P11',u:'수학(상)',t:'모든 실수 x에 대해 이차부등식이 성립',c:'ax² + bx + c > 0 항상 성립 ⇔ a > 0 이고 D < 0. (≥이면 D ≤ 0)',tip:'a = 0인 경우도 따로 확인.'},
+ {id:'P12',u:'수학(상)',t:'이차방정식의 근이 특정 범위에 있음 (근의 분리)',c:'세 가지 확인: ① 판별식 ② 축의 위치 ③ 경계에서의 함숫값 부호.',tip:'두 근 사이에 k가 있으면 f(k) < 0 하나로 끝 (a > 0일 때).'},
+ {id:'P13',u:'수학(상)',t:'x + 1/x 꼴 / 계수가 좌우 대칭인 사차방정식',c:'x² + 1/x² = (x + 1/x)² − 2. 대칭 사차방정식은 x²으로 나누고 t = x + 1/x로 치환.',tip:''},
+ {id:'P14',u:'수학(상)',t:'양수 조건에서 합 또는 곱의 최솟값·최댓값',c:'산술·기하 평균: a + b ≥ 2√(ab) (a, b > 0), 등호는 a = b.',tip:'x + 4/x 같은 꼴. 등호 성립 조건을 꼭 확인.'},
+ {id:'P15',u:'수학(상)',t:'절댓값이 들어간 방정식·부등식',c:'절댓값 안이 0이 되는 x를 기준으로 구간을 나눠서 푼다.',tip:'구한 해가 그 구간에 들어가는지 확인.'},
+ {id:'P16',u:'수학(상)',t:'a + b, ab (또는 a − b)를 알고 다른 식의 값을 구하라',c:'곱셈공식 변형: a² + b² = (a+b)² − 2ab, (a−b)² = (a+b)² − 4ab, a³ + b³ = (a+b)³ − 3ab(a+b).',tip:'세 문자: a²+b²+c² = (a+b+c)² − 2(ab+bc+ca).'},
+ {id:'P17',u:'수학(상)',t:'복소수 z와 켤레 z̄가 같이 나옴',c:'z = a + bi로 두고 정리. z + z̄ = 2a, z·z̄ = a² + b² (둘 다 실수).',tip:'z가 실수 ⇔ z = z̄, 순허수 ⇔ z = −z̄ (z ≠ 0).'},
+ {id:'P18',u:'수학(상)',t:'x⁴ + ax² + b 꼴의 인수분해',c:'x² = t로 치환해서 인수분해. 안 되면 x²항을 더하고 빼서 A² − B² 꼴로 만든다.',tip:'예: x⁴ + 4 = (x² + 2)² − (2x)².'},
+ {id:'P19',u:'수학(상)',t:'연립이차방정식',c:'일차식이 있으면 한 문자로 정리해서 대입. 둘 다 이차면 인수분해되는 식을 찾아 일차식 두 개로 쪼갠다.',tip:''},
+ {id:'P20',u:'수학(상)',t:'x + y와 xy의 값을 알 때 x, y를 구하라',c:'x, y는 t² − (x + y)t + xy = 0의 두 근.',tip:'대칭식 연립방정식은 x + y = u, xy = v로 치환.'}
+];
+const UNITS = ['극한','연속','미분','적분','미적·극한','미적·미분','미적·적분','수학(상)','도형'];
+
+/* ---------- 상태 ---------- */
+let S = { progress:{}, custom:[], explain:{} };   // progress[id] = {box,last,seen,miss}
+let WR = [];                          // 오답 목록
+let mode = 'local', db=null, uid=null, assets=null, sample=null, sampleImages=false;
+let stateRef=null, wrongCol=null;
+const LS='sjg_v1';
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const all = () => BASE.concat(S.custom);
+const byId = id => all().find(c=>c.id===id);
+const prog = id => S.progress[id] || {box:0,last:0,seen:0,miss:0};
+
+function note(msg){ const n=$('#note'); if(!msg){n.style.display='none';return;} n.textContent=msg; n.style.display='block'; }
+
+function saveLocal(){ try{ localStorage.setItem(LS, JSON.stringify({S, WR: WR.map(w=>({...w}))})); return true; }catch(e){ if(mode!=='db') note('기기 저장 공간이 꽉 찼어요. 오래된 오답 사진을 지워주세요.'); return false; } }
+function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem(LS)||'null'); if(d){ S=Object.assign({progress:{},custom:[],explain:{}},d.S||{}); WR=d.WR||[]; } }catch(e){} }
+
+/* 한 문서에 한 번에 하나씩 쓰기 */
+let saveTimer=null, saving=Promise.resolve();
+function saveState(){
+  saveLocal();
+  if(mode!=='db') return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    const body=JSON.parse(JSON.stringify(S));
+    saving = saving.then(()=>stateRef.set(body)).catch(e=>note('저장이 안 됐어요. 잠시 후 다시 시도해 주세요.'));
+  },700);
+}
+async function saveWrong(w){
+  saveLocal();
+  if(mode!=='db') return;
+  const body=JSON.parse(JSON.stringify(w));
+  await wrongCol.doc(w.id).set(body);
+}
+async function deleteWrong(w){
+  WR = WR.filter(x=>x.id!==w.id); saveLocal();
+  if(mode==='db'){ try{ await wrongCol.doc(w.id).delete(); }catch(e){} }
+  if(w.photoId && assets){ try{ await assets.delete(w.photoId); }catch(e){} }
+}
+
+async function initStore(){
+  loadLocal();
+  render();
+  if(!(window.claude && claude.use)){ note('기록은 이 기기(브라우저)에만 저장돼요. 사파리 방문 기록을 지우면 같이 지워질 수 있어요.'); return; }
+  try{
+    const [d,u] = await Promise.all([claude.use('db'), claude.use('user')]);
+    claude.use('assets').then(a=>{assets=a;}).catch(()=>{});
+    claude.use('sample').then(async s=>{
+      sample=s;
+      if(s && s.limits){ try{ sampleImages=!!(await s.limits()).images; }catch(e){} }
+    }).catch(()=>{});
+    if(!d || !u){ note('로그인 상태가 아니라 기기에만 저장돼요.'); return; }
+    const id = await u.id();
+    if(!id){ note('기기에만 저장돼요.'); return; }
+    db=d; uid=id;
+    stateRef = db.doc('data/users/'+uid+'/state');
+    wrongCol = stateRef.collection('wrongs');
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej({code:'timeout'}),10000));
+    const [snap, ws] = await Promise.race([Promise.all([stateRef.get(), wrongCol.orderBy('ts','desc').get()]), timeout]);
+    mode='db';
+    if(snap.exists){
+      const d0=snap.data(); S={progress:{...(d0.progress||{})}, custom:[...(d0.custom||[])], explain:{...(d0.explain||{})}};
+    }else if(Object.keys(S.progress).length || S.custom.length){
+      saveState(); // 기기에 있던 기록 올리기
+    }
+    const remote = ws.docs.map(x=>({...x.data()}));
+    const ids = new Set(remote.map(w=>w.id));
+    const localOnly = WR.filter(w=>!ids.has(w.id));
+    for(const w of localOnly){ try{ await saveWrong(w); }catch(e){} }
+    WR = remote.concat(localOnly).sort((a,b)=>b.ts-a.ts);
+    saveLocal(); note('');
+    render();
+  }catch(e){
+    mode='local';
+    note(e && e.code==='timeout' ? '저장소에 연결이 늦어요. 지금은 기기에만 저장돼요.' : '지금은 기기에만 저장돼요.');
+  }
+}
+
+/* ---------- 탭 ---------- */
+let tab='train';
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  tab=b.dataset.tab;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  render(); window.scrollTo(0,0);
+});
+function render(){ if(tab==='train') renderTrain(); else if(tab==='cards') renderCards(); else renderWrongs(); }
+
+function dots(box){ let h='<span class="dots">'; for(let i=0;i<4;i++) h+=`<b class="${i<box?'f':''}"></b>`; return h+'</span>'; }
+function unitChips(cur, onKey, extra=[]){
+  const opts=['전체','수학 II','미적분','기초',...UNITS,'내 카드',...extra];
+  return '<div class="chips">'+opts.map(o=>`<button class="chip ${o===cur?'on':''}" data-${onKey}="${esc(o)}">${esc(o)}</button>`).join('')+'</div>';
+}
+function inUnit(c,u){ if(u==='전체') return true; if(u==='미적분') return c.u.startsWith('미적'); if(u==='기초') return c.u==='도형'||c.u==='수학(상)'; if(u==='수학 II') return ['극한','연속','미분','적분'].includes(c.u); if(u==='내 카드') return !!c.custom; return c.u===u; }
+
+/* ---------- 훈련 ---------- */
+let T = { unit:'전체', queue:null, i:0, shown:false, done:0, total:0, onlyIds:null, label:'' };
+function buildQueue(){
+  let pool = T.onlyIds ? T.onlyIds.map(byId).filter(Boolean) : all().filter(c=>inUnit(c,T.unit) && !prog(c.id).skip);
+  pool = pool.map(c=>({c, p:prog(c.id), r:Math.random()}))
+    .sort((a,b)=> (a.p.box-b.p.box) || (a.p.last-b.p.last) || (a.r-b.r))
+    .slice(0, T.onlyIds ? pool.length : 10).map(x=>x.c.id);
+  T.queue=pool; T.i=0; T.shown=false; T.done=0; T.total=pool.length;
+}
+function renderTrain(){
+  const v=$('#view');
+  if(!T.queue){
+    const pool = all();
+    const learned = pool.filter(c=>prog(c.id).box>=3).length;
+    const weak = pool.filter(c=>prog(c.id).seen>0 && prog(c.id).box<=1 && !prog(c.id).skip).length;
+    const skipped = pool.filter(c=>prog(c.id).skip).length;
+    v.innerHTML = `
+      <div class="stat">
+        <div><b>${pool.length}</b><span>전체 카드</span></div>
+        <div><b>${learned}</b><span>익숙함</span></div>
+        <div><b>${weak}</b><span>약한 카드</span></div>
+      </div>
+      ${unitChips(T.unit,'tu')}
+      <div class="box">
+        ${skipped?`<div class="small" style="margin-bottom:8px">📌 아직 안 배운 카드 ${skipped}장은 빠져 있어요. 카드 탭에서 해제할 수 있어요.</div>`:''}
+        <div class="small" style="margin-bottom:10px">약한 카드부터 10장씩 나와요. 조건을 보고 떠올린 개념을 먼저 적어보거나 말해본 다음 정답을 확인하세요.</div>
+        <button class="btn" id="start">훈련 시작</button>
+      </div>`;
+    v.querySelectorAll('[data-tu]').forEach(b=>b.onclick=()=>{T.unit=b.dataset.tu; renderTrain();});
+    $('#start').onclick=()=>{ T.onlyIds=null; T.label=T.unit; buildQueue(); if(!T.total){ v.insertAdjacentHTML('beforeend','<div class="empty">훈련할 카드가 없어요. (아직 안 배움으로 표시된 카드는 빠져요)</div>'); T.queue=null; return;} renderTrain(); };
+    return;
+  }
+  if(T.i>=T.queue.length){
+    v.innerHTML = `<div class="box" style="text-align:center">
+      <div style="font-size:34px">✓</div><div class="trigger">${T.total}장 끝!</div>
+      <div class="small">몰랐던 카드는 다음 훈련에 먼저 나와요.</div>
+      <div class="row" style="margin-top:14px"><button class="btn ghost" id="home">처음으로</button><button class="btn" id="again">한 번 더</button></div></div>`;
+    $('#home').onclick=()=>{T.queue=null;T.onlyIds=null;renderTrain();};
+    $('#again').onclick=()=>{buildQueue();renderTrain();};
+    return;
+  }
+  const c = byId(T.queue[T.i]); const p=prog(c.id);
+  const linked = WR.filter(w=>(w.cardIds||[]).includes(c.id)).length;
+  v.innerHTML = `
+    <div class="meta"><span>${esc(T.label||'훈련')} · ${T.i+1} / ${T.queue.length}</span><span>${dots(p.box)}</span></div>
+    <div class="prog"><i style="width:${(T.i/T.queue.length)*100}%"></i></div>
+    <div class="box">
+      <span class="unit">${esc(c.u)}</span>${linked?` <span class="small">· 오답 ${linked}개 연결</span>`:''}
+      <div class="trigger">${esc(c.t)}</div>
+      <div class="qhint">→ 이 조건을 보면 뭘 떠올려야 할까?</div>
+      ${T.shown ? `
+        ${T.mine?`<div class="mine"><span class="small">내 답</span><br>${esc(T.mine)}</div>`:''}
+        <div class="concept">${esc(c.c)}</div>
+        ${c.tip?`<div class="tip">💡 ${esc(c.tip)}</div>`:''}
+      ` : `<textarea id="mine" placeholder="떠올린 개념 적기 (선택)" style="margin-top:12px"></textarea>`}
+    </div>
+    ${T.shown ? `
+      <div class="row rate">
+        <button class="btn b0" data-r="0">몰랐음</button>
+        <button class="btn b1" data-r="1">헷갈림</button>
+        <button class="btn b2" data-r="2">알았음</button>
+      </div>
+      ${(sample||(S.explain&&S.explain[c.id]))?'<button class="btn ghost" id="exp" style="margin-top:8px">📖 왜 그런지 설명</button>':''}` : `<button class="btn" id="reveal">정답 보기</button>`}
+    <div style="text-align:center;margin-top:10px"><button class="link" id="skip">아직 안 배운 개념</button> · <button class="link" id="quit">그만하기</button></div>`;
+  if(!T.shown){ $('#reveal').onclick=()=>{ T.mine=($('#mine').value||'').trim(); T.shown=true; renderTrain(); }; }
+  else { v.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>rate(c.id, +b.dataset.r)); if($('#exp')) $('#exp').onclick=()=>explainSheet(c); }
+  $('#skip').onclick=()=>{ setSkip(c.id,true); T.queue=T.queue.filter((x,k)=>k<=T.i||x!==c.id); T.queue.splice(T.i,1); T.shown=false; T.mine=''; renderTrain(); };
+  $('#quit').onclick=()=>{T.queue=null;T.onlyIds=null;renderTrain();};
+}
+function rate(id,r){
+  const p={...prog(id)};
+  p.seen++; p.last=Date.now();
+  if(r===0){ p.box=0; p.miss++; if(T.queue.slice(T.i+1).indexOf(id)<0) T.queue.splice(Math.min(T.i+4,T.queue.length),0,id); }
+  else if(r===1){ p.box=Math.min(p.box,1); }
+  else { p.box=Math.min(4,p.box+1); }
+  S.progress[id]=p; saveState();
+  T.i++; T.shown=false; T.mine='';
+  renderTrain();
+}
+function trainIds(ids,label){
+  T.onlyIds=ids; T.label=label; buildQueue(); tab='train';
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.tab==='train'));
+  renderTrain(); window.scrollTo(0,0);
+}
+
+/* ---------- 카드 ---------- */
+let CU='전체', CQ='';
+function renderCards(){
+  const v=$('#view');
+  const q=CQ.trim();
+  const list = all().filter(c=>inUnit(c,CU)).filter(c=>!q || (c.t+c.c+(c.tip||'')).includes(q));
+  v.innerHTML = `
+    <input type="text" id="cq" placeholder="검색 (예: 루트, 접선, 미정계수)" value="${esc(CQ)}">
+    ${unitChips(CU,'cu')}
+    <button class="btn ghost" id="addCard" style="margin-bottom:12px">＋ 내 카드 만들기</button>
+    <div class="box list">${list.length? list.map(c=>{
+      const p=prog(c.id); const n=WR.filter(w=>(w.cardIds||[]).includes(c.id)).length;
+      return `<div class="item" data-id="${esc(c.id)}">
+        <div class="meta"><span><span class="unit">${esc(c.u)}</span>${c.custom?' <span class="small">내 카드</span>':''}${p.skip?' <span class="small">· 📌 안 배움</span>':''}${n?` <span class="small">· 오답 ${n}</span>`:''}</span>${dots(p.box)}</div>
+        <div class="t" style="margin-top:6px">${esc(c.t)}</div>
+        <div class="c">→ ${esc(c.c)}${c.tip?`<br>💡 ${esc(c.tip)}`:''}</div>
+        <div class="tools">
+          <button class="link" data-act="train">이 카드 훈련</button>
+          ${(sample||(S.explain&&S.explain[c.id]))?'<button class="link" data-act="exp">📖 설명</button>':''}
+          <button class="link" data-act="skip">${p.skip?'안 배움 해제':'아직 안 배움'}</button>
+          ${n?'<button class="link" data-act="wr">연결된 오답</button>':''}
+          ${c.custom?'<button class="link" data-act="edit">수정</button><button class="link" data-act="del" style="color:var(--bad)">삭제</button>':''}
+        </div></div>`;}).join('') : '<div class="empty">카드가 없어요.</div>'}</div>`;
+  const cq=$('#cq'); cq.oninput=()=>{CQ=cq.value; const pos=cq.selectionStart; renderCards(); const n=$('#cq'); n.focus(); n.setSelectionRange(pos,pos);};
+  v.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>{CU=b.dataset.cu;renderCards();});
+  $('#addCard').onclick=()=>cardSheet();
+  v.querySelectorAll('.item').forEach(it=>{
+    it.onclick=e=>{
+      const act=e.target.dataset && e.target.dataset.act; const id=it.dataset.id;
+      if(act==='train') return trainIds([id],'카드 1장');
+      if(act==='exp') return explainSheet(byId(id));
+      if(act==='skip'){ setSkip(id, !prog(id).skip); return renderCards(); }
+      if(act==='wr'){ WF=id; tab='wrongs'; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.tab==='wrongs')); return renderWrongs(); }
+      if(act==='edit') return cardSheet(byId(id));
+      if(act==='del') return confirmSheet('이 카드를 삭제할까요?',()=>{ S.custom=S.custom.filter(c=>c.id!==id); delete S.progress[id]; saveState(); renderCards(); });
+      it.classList.toggle('open');
+    };
+  });
+}
+
+function setSkip(id,on){ const p={...prog(id)}; if(on) p.skip=true; else delete p.skip; S.progress[id]=p; saveState(); }
+
+/* ---------- 개념 설명 ---------- */
+function fmt(t){ return esc(t).replace(/\n/g,'<br>'); }
+function explainSheet(c){
+  const saved = S.explain && S.explain[c.id];
+  openSheet(`<h2>📖 개념 설명</h2>
+    <span class="unit">${esc(c.u)}</span>
+    <div class="t" style="font-weight:650;margin:8px 0 4px;line-height:1.5">${esc(c.t)}</div>
+    <div class="small" style="line-height:1.5">→ ${esc(c.c)}</div>
+    <div class="concept" id="expOut">${saved?fmt(saved):(sample?'<span class="small">아직 설명이 없어요.</span>':'<span class="small">이 화면에서는 설명 기능을 쓸 수 없어요.</span>')}</div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn ghost" id="ex0">닫기</button>
+      ${sample?`<button class="btn" id="ex1">${saved?'다시 설명':'설명 받기'}</button>`:''}
+    </div>`);
+  $('#ex0').onclick=closeSheet;
+  if($('#ex1')) $('#ex1').onclick=()=>askExplain(c);
+}
+async function askExplain(c){
+  const out=$('#expOut'), btn=$('#ex1');
+  btn.disabled=true; btn.textContent='설명 쓰는 중…'; out.innerHTML='<span class="small">생각하는 중…</span>';
+  const prompt=`너는 한국 고등학교 수학 선생님이야. 학생이 아래 실전 개념의 기본 개념 정리가 아직 안 된 상태야. 처음 배우는 학생도 이해하게 설명해줘.
+
+단원: ${c.u}
+문제에서 보이는 조건: ${c.t}
+떠올려야 할 실전 개념: ${c.c}
+${c.tip?'참고: '+c.tip:''}
+
+형식 (마크다운 기호 없이 일반 텍스트로, 전체 15줄 이내):
+[먼저 알아야 할 기본 개념] 1~3줄
+[왜 그런지] 2~4줄, 직관적으로
+[예제] 짧은 문제 하나와 풀이 3~5줄
+[자주 하는 실수] 1줄
+수식은 x², √, ∫, → 같은 기호로 쓰고 LaTeX는 쓰지 마.`;
+  try{
+    const r = await sample(prompt,{modelTier:'default', onText:({text})=>{ out.innerHTML=fmt(text); }});
+    const text=(r.text||'').trim();
+    if(!text) throw {};
+    out.innerHTML=fmt(text);
+    S.explain = S.explain||{}; S.explain[c.id]=text; saveState();
+    btn.disabled=false; btn.textContent='다시 설명';
+  }catch(e){
+    btn.disabled=false; btn.textContent='설명 받기';
+    if(e && e.code==='not_granted'){ out.innerHTML='<span class="small">설명 기능 사용이 허락되지 않았어요.</span>'; btn.remove(); return; }
+    out.innerHTML='<span class="small">'+(e&&e.code==='rate_limited'?'요청이 많아요. 잠시 후 다시 눌러주세요.':'설명을 받지 못했어요. 다시 눌러주세요.')+'</span>';
+  }
+}
+
+/* ---------- 시트(팝업) ---------- */
+function openSheet(html){ $('#sheet').innerHTML=html; $('#sheet').style.display='block'; $('#sheetBg').style.display='block'; }
+function closeSheet(){ $('#sheet').style.display='none'; $('#sheetBg').style.display='none'; $('#sheet').innerHTML=''; }
+$('#sheetBg').onclick=closeSheet;
+function confirmSheet(msg,ok){
+  openSheet(`<h2>${esc(msg)}</h2><div class="row"><button class="btn ghost" id="no">취소</button><button class="btn" id="yes" style="background:var(--bad)">삭제</button></div>`);
+  $('#no').onclick=closeSheet; $('#yes').onclick=()=>{closeSheet();ok();};
+}
+function cardSheet(card, preset){
+  const c = card || Object.assign({u:'극한',t:'',c:'',tip:''}, preset||{});
+  openSheet(`<h2>${card?'카드 수정':'내 카드 만들기'}</h2>
+    <label class="lbl">단원</label>
+    <select id="cu2">${UNITS.concat(['기타']).map(u=>`<option ${u===c.u?'selected':''}>${u}</option>`).join('')}</select>
+    <label class="lbl">문제에서 보이는 조건</label>
+    <textarea id="ct" placeholder="예: 두 그래프가 접한다">${esc(c.t)}</textarea>
+    <label class="lbl">떠올려야 할 실전 개념</label>
+    <textarea id="cc" placeholder="예: 함숫값 같음 + 미분계수 같음, 식 2개">${esc(c.c)}</textarea>
+    <label class="lbl">메모 (선택)</label>
+    <input type="text" id="ctip" value="${esc(c.tip||'')}" placeholder="자주 하는 실수 등">
+    <div class="row" style="margin-top:16px"><button class="btn ghost" id="cx">취소</button><button class="btn" id="cs">저장</button></div>`);
+  $('#cx').onclick=closeSheet;
+  $('#cs').onclick=()=>{
+    const t=$('#ct').value.trim(), cc=$('#cc').value.trim();
+    if(!t||!cc){ $('#cs').textContent='조건과 개념을 적어주세요'; return; }
+    if(card){ Object.assign(card,{u:$('#cu2').value,t,c:cc,tip:$('#ctip').value.trim()}); }
+    else{ const nc={id:'U'+Date.now().toString(36),u:$('#cu2').value,t,c:cc,tip:$('#ctip').value.trim(),custom:true}; S.custom.push(nc); if(preset && preset.onCreate) preset.onCreate(nc.id); }
+    saveState(); closeSheet(); render();
+  };
+}
+
+/* ---------- 오답 ---------- */
+let WF=null; // 카드 id 필터
+function photoSrc(w){ return w.photoId ? '/_blob/'+encodeURIComponent(w.photoId) : (w.photoData||''); }
+function renderWrongs(){
+  const v=$('#view');
+  const list = WF ? WR.filter(w=>(w.cardIds||[]).includes(WF)) : WR;
+  const fc = WF && byId(WF);
+  v.innerHTML = `
+    <button class="btn" id="addW" style="margin-bottom:12px">📷 틀린 문제 추가</button>
+    ${fc?`<div class="box small">필터: ${esc(fc.t)} <button class="link" id="clrF">해제</button></div>`:''}
+    ${list.length ? `<div class="box" style="padding:4px 16px">${list.map(w=>{
+      const cs=(w.cardIds||[]).map(byId).filter(Boolean);
+      const src=photoSrc(w);
+      return `<div class="wr" data-id="${esc(w.id)}">
+        ${src?`<img src="${esc(src)}" alt="">`:'<div class="thumb-empty"></div>'}
+        <div class="body">
+          <div class="small">${new Date(w.ts).toLocaleDateString('ko-KR')} ${w.unit?'· '+esc(w.unit):''}</div>
+          <div class="t" style="font-size:14px;margin-top:2px">${esc(w.memo||'(메모 없음)')}</div>
+          <div class="small" style="margin-top:4px">${cs.map(c=>'#'+esc(c.t.slice(0,18))+(c.t.length>18?'…':'')).join(' ')}</div>
+        </div></div>`;}).join('')}</div>`
+      : `<div class="empty">종이에 풀다가 틀린 문제를 찍어서 올려두세요.<br>필요한 실전 개념 카드와 연결하면, 나중에 그 카드만 모아서 훈련할 수 있어요.</div>`}`;
+  $('#addW').onclick=()=>$('#fileIn').click();
+  if(fc) $('#clrF').onclick=()=>{WF=null;renderWrongs();};
+  v.querySelectorAll('.wr').forEach(el=>el.onclick=()=>wrongDetail(WR.find(w=>w.id===el.dataset.id)));
+}
+
+$('#fileIn').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value='';
+  if(!f) return;
+  let blob;
+  try{ blob = await shrink(f, 1400, 0.8); }catch(err){ blob=f; }
+  wrongSheet({ id:'w'+Date.now().toString(36), ts:Date.now(), cardIds:[], memo:'', unit:'' }, blob, true);
+};
+function shrink(file,max,q){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file); const img=new Image();
+    img.onload=()=>{ const s=Math.min(1,max/Math.max(img.width,img.height));
+      const cv=document.createElement('canvas'); cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); URL.revokeObjectURL(url);
+      cv.toBlob(b=>b?res(b):rej(), 'image/jpeg', q); };
+    img.onerror=()=>{URL.revokeObjectURL(url);rej();}; img.src=url;
+  });
+}
+function blobToData(b){ return new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(b);}); }
+
+function wrongSheet(w, blob, isNew){
+  const sel=new Set(w.cardIds||[]);
+  let pu='전체', pq='';
+  const src = blob ? URL.createObjectURL(blob) : photoSrc(w);
+  openSheet(`<h2>${isNew?'틀린 문제 추가':'오답 수정'}</h2>
+    ${src?`<img class="preview" src="${esc(src)}" alt="">`:''}
+    ${blob && sample && sampleImages ? `<button class="btn ghost" id="aiBtn">🤖 Claude에게 필요한 개념 추천받기</button>`:''}
+    <div class="ai" id="aiOut"></div>
+    <label class="lbl">어디서 막혔나요?</label>
+    <textarea id="wm" placeholder="예: 분모→0인 걸 보고도 분자=0을 못 떠올림">${esc(w.memo)}</textarea>
+    <label class="lbl">필요했던 실전 개념 (여러 개 선택)</label>
+    <input type="text" id="pq" placeholder="카드 검색">
+    <div class="chips" id="pu"></div>
+    <div class="pick" id="pick"></div>
+    <button class="link" id="newC">＋ 맞는 카드가 없으면 새로 만들기</button>
+    <div class="row" style="margin-top:14px">
+      ${isNew?'<button class="btn ghost" id="wx">취소</button>':'<button class="btn ghost" id="wd" style="color:var(--bad)">삭제</button>'}
+      <button class="btn" id="ws">저장</button></div>`);
+  function drawPick(){
+    $('#pu').innerHTML=['전체','수학 II','미적분','기초',...UNITS,'내 카드'].map(o=>`<button class="chip ${o===pu?'on':''}" data-pu="${o}">${o}</button>`).join('');
+    $('#pu').querySelectorAll('[data-pu]').forEach(b=>b.onclick=()=>{pu=b.dataset.pu;drawPick();});
+    const items=all().filter(c=>inUnit(c,pu)||sel.has(c.id)).filter(c=>!pq||(c.t+c.c).includes(pq))
+      .sort((a,b)=>(sel.has(b.id)-sel.has(a.id)));
+    $('#pick').innerHTML=items.map(c=>`<button class="chip ${sel.has(c.id)?'on':''}" data-pk="${esc(c.id)}">${esc(c.t)}</button>`).join('')||'<div class="small">검색 결과 없음</div>';
+    $('#pick').querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{const id=b.dataset.pk; sel.has(id)?sel.delete(id):sel.add(id); drawPick();});
+  }
+  drawPick();
+  $('#pq').oninput=e=>{pq=e.target.value.trim();drawPick();};
+  $('#newC').onclick=()=>{ const memo=$('#wm').value; w.memo=memo; w.cardIds=[...sel];
+    cardSheet(null,{onCreate:id=>{ w.cardIds.push(id); setTimeout(()=>wrongSheet(w,blob,isNew),0);} }); };
+  if($('#wx')) $('#wx').onclick=closeSheet;
+  if($('#wd')) $('#wd').onclick=()=>confirmSheet('이 오답을 삭제할까요?',async()=>{await deleteWrong(w);renderWrongs();});
+  if($('#aiBtn')) $('#aiBtn').onclick=()=>askAI(blob, sel, drawPick, w);
+  $('#ws').onclick=async()=>{
+    const btn=$('#ws'); btn.disabled=true; btn.textContent='저장 중…';
+    w.memo=$('#wm').value.trim(); w.cardIds=[...sel];
+    const units=[...new Set(w.cardIds.map(id=>byId(id)?.u).filter(Boolean))]; w.unit=units.join('·');
+    try{
+      if(blob && !w.photoId && !w.photoData){
+        let up=null;
+        if(assets){ try{ up=await assets.upload(blob); }catch(e){} }
+        if(up && up.id) w.photoId=up.id;
+        else { const small = await shrink(blob, mode==='db'?900:800, mode==='db'?0.6:0.55).catch(()=>blob); w.photoData = await blobToData(small); }
+      }
+      if(isNew) WR.unshift(w);
+      await saveWrong(w);
+      if(mode!=='db' && !saveLocal()) throw {code:'local_full'};
+      closeSheet(); renderWrongs();
+    }catch(e){
+      btn.disabled=false; btn.textContent='저장';
+      note(e && (e.code==='quota_exceeded'||e.code==='local_full') ? '저장 공간이 꽉 찼어요. 오래된 오답을 지워주세요.' : '저장이 안 됐어요. 다시 눌러주세요.');
+      if(isNew) WR=WR.filter(x=>x!==w);
+    }
+  };
+}
+function wrongDetail(w){
+  if(!w) return;
+  const cs=(w.cardIds||[]).map(byId).filter(Boolean);
+  const src=photoSrc(w);
+  openSheet(`<h2>오답</h2>
+    ${src?`<img class="preview" src="${esc(src)}" alt="">`:''}
+    <div class="small">${new Date(w.ts).toLocaleString('ko-KR')}</div>
+    <div style="margin:8px 0 12px;line-height:1.5">${esc(w.memo||'(메모 없음)')}</div>
+    ${w.aiReason?`<div class="ai" style="display:block">🤖 ${esc(w.aiReason)}</div>`:''}
+    <label class="lbl">연결된 실전 개념</label>
+    ${cs.length?cs.map(c=>`<div class="box" style="padding:10px 12px;margin-bottom:8px"><div class="t" style="font-size:14px;font-weight:600">${esc(c.t)}</div><div class="small" style="margin-top:4px">→ ${esc(c.c)}</div></div>`).join(''):'<div class="small">연결된 카드가 없어요.</div>'}
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost" id="we">수정</button>
+      ${cs.length?'<button class="btn" id="wt">이 개념들 훈련</button>':''}
+    </div>`);
+  $('#we').onclick=()=>wrongSheet(w,null,false);
+  if($('#wt')) $('#wt').onclick=()=>{closeSheet(); trainIds(cs.map(c=>c.id),'오답 연결 카드');};
+}
+
+/* ---------- Claude 추천 ---------- */
+async function askAI(blob, sel, redraw, w){
+  const out=$('#aiOut'), btn=$('#aiBtn');
+  btn.disabled=true; btn.textContent='문제를 읽는 중…';
+  out.style.display='none';
+  const cardList = all().map(c=>`${c.id} [${c.u}] ${c.t} → ${c.c}`).join('\n');
+  const prompt = `너는 한국 고등학교 수학(수학(상), 수학 II, 미적분, 기본 도형) 문제풀이 코치야. 사진 속 문제를 읽고, 이 문제를 풀 때 필요한 "실전 개념"을 아래 카드 목록에서 골라.
+각 카드는 "문제에서 보이는 조건 → 떠올려야 할 개념" 형식이야.
+
+카드 목록:
+${cardList}
+
+규칙:
+- 실제로 이 문제 풀이에 쓰이는 카드만 최대 4개 골라. 억지로 고르지 마.
+- 목록에 없는데 꼭 필요한 실전 개념이 있으면 newCard로 하나 제안해 (없으면 null). unit은 ${UNITS.join(', ')} 중 하나.
+- reason은 한국어 1~2문장. 어떤 조건이 어떤 개념으로 이어지는지 짧게.
+- 사진이 수학 문제가 아니거나 읽을 수 없으면 cardIds를 빈 배열로 하고 reason에 그 사실을 적어.
+
+JSON만 출력:
+{"cardIds":["L1"],"reason":"...","newCard":{"unit":"미분","trigger":"...","concept":"..."} 또는 null}`;
+  try{
+    let res;
+    if(sample.json) res = await sample.json(prompt,{images:[blob], modelTier:'default'});
+    else { const r = await sample(prompt,{images:[blob], modelTier:'default'}); res = JSON.parse((r.text||'').replace(/^[^{]*/,'').replace(/[^}]*$/,'')); }
+    const ids=(res.cardIds||[]).filter(id=>byId(id));
+    ids.forEach(id=>sel.add(id)); redraw();
+    w.aiReason = res.reason||'';
+    let html = `🤖 ${esc(res.reason||'')}`;
+    if(ids.length) html += `<br><span class="small">추천 카드 ${ids.length}개를 선택해 뒀어요. 맞는지 확인하고 고치세요.</span>`;
+    if(res.newCard && res.newCard.trigger){
+      html += `<div style="margin-top:8px"><b>새 카드 제안</b><br>${esc(res.newCard.trigger)} → ${esc(res.newCard.concept)}<br><button class="link" id="aiNew">이 카드 추가하기</button></div>`;
+    }
+    out.innerHTML=html; out.style.display='block';
+    if($('#aiNew')) $('#aiNew').onclick=()=>{
+      const u = UNITS.includes(res.newCard.unit)?res.newCard.unit:'기타';
+      const nc={id:'U'+Date.now().toString(36),u,t:res.newCard.trigger,c:res.newCard.concept,tip:'',custom:true};
+      S.custom.push(nc); saveState(); sel.add(nc.id); redraw(); $('#aiNew').outerHTML='<span class="small">추가했어요 ✓</span>';
+    };
+    btn.textContent='다시 추천받기'; btn.disabled=false;
+  }catch(e){
+    btn.disabled=false; btn.textContent='🤖 Claude에게 필요한 개념 추천받기';
+    if(e && e.code==='not_granted'){ btn.remove(); return; }
+    out.textContent = e && e.code==='rate_limited' ? '요청이 많아요. 잠시 후 다시 눌러주세요.' : '추천을 받지 못했어요. 직접 골라주세요.';
+    out.style.display='block';
+  }
+}
+
+initStore();
+</script>
+</body>
+</html>
